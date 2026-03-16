@@ -1,0 +1,23 @@
+{
+  "subreddits": [
+    "norfolk",
+    "VirginiaBeach",
+    "hamptonroads"
+  ],
+  "thread_limit_per_listing": 40,
+  "pulse_listings": [
+    "hot",
+    "new"
+  ],
+  "backfill_listings": [
+    "top_month"
+  ],
+  "historical_window_days": 30,
+  "historical_min_window_days": 3,
+  "historical_windows_per_run": 1,
+  "historical_stop_at": "2008-01-01T00:00:00Z",
+  "comment_refresh_window_hours": 72,
+  "comment_recrawl_interval_minutes": 60,
+  "comment_sort": "confidence",
+  "replace_more_limit": null
+}

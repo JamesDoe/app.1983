@@ -1,0 +1,56 @@
+Read AGENTS.md, TASK.md, ARCHITECTURE.md, and the sample_data files first.
+
+Build only the Reddit collectors MVP.
+
+Requirements:
+- Python project
+- use PRAW
+- implement thread collection for r/norfolk, r/VirginiaBeach, r/hamptonroads
+- sampling modes: hot, new, top(month)
+- implement full recursive comment-tree collection for selected thread IDs
+- preserve true depth, parent_id, reply_count, score, author_id, community, thread_id, created_at, text
+- write normalized JSONL to data/normalized/
+- write raw payload JSONL to data/raw/
+- implement checkpointing in data/checkpoints/
+- dedupe normalized records by native id
+- add a CLI with commands:
+  - collect-threads --mode pulse
+  - collect-threads --mode backfill
+  - collect-comments --thread-id <id>
+  - collect-comments --input-file <thread_ids.txt>
+- add tests for:
+  - normalization
+  - recursive depth traversal
+  - checkpoint resume behavior
+
+Do not build:
+- concept extraction
+- clustering
+- graphs
+- dashboards
+- database integration
+- embeddings
+- sentiment analysis
+
+Work in phases and stop after each:
+1. scaffold files and docs
+2. reddit client + config
+3. thread collector
+4. comment collector with true depth
+5. writers + checkpoints
+6. CLI
+7. tests
+8. final cleanup and usage notes
+
+Repository requirements:
+- Include type hints
+- Include tests
+- Include a config file for thresholds
+- Include dev-docs.html as a readable developer handoff
+- Include clear TODO markers for phase-2 Postgres integration
+
+When done:
+- summarize file tree
+- explain how to run it
+- explain known limitations
+- suggest the next 3 best upgrades
