@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>cultural-signal-graph Developer Docs</title>
+  <style>
+    :root {
+      --bg: #f4f0e8;
+      --panel: #fffaf2;
+      --ink: #1f2933;
+      --muted: #52606d;
+      --accent: #8c3d1f;
+      --accent-soft: #f3dfd4;
+      --line: #d9c7b8;
+      --code: #2f4858;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, #fff6e9 0%, transparent 30%),
+        linear-gradient(180deg, #efe7da 0%, var(--bg) 100%);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    header {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(31, 41, 51, 0.07);
+    }
+
+    h1, h2, h3 {
+      line-height: 1.2;
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      color: var(--accent);
+    }
+
+    h2 {
+      margin-top: 36px;
+      font-size: 1.5rem;
+      color: var(--accent);
+    }
+
+    h3 {
+      margin-top: 24px;
+      font-size: 1.1rem;
+    }
+
+    p, li {
+      font-size: 1rem;
+    }
+
+    .lede {
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 54rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .card strong {
+      color: var(--accent);
+    }
+
+    code {
+      font-family: Consolas, "Courier New", monospace;
+      background: var(--accent-soft);
+      color: var(--code);
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+    }
+
+    pre {
+      overflow-x: auto;
+      background: #fffdf9;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8ede3;
+      color: var(--accent);
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+      padding: 12px 14px;
+      background: #fff5ee;
+      margin: 16px 0;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0;
+    }
+
+    .step {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      white-space: nowrap;
+    }
+
+    .arrow {
+      align-self: center;
+      color: var(--muted);
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>cultural-signal-graph</h1>
+      <p class="lede">
+        This document is a handoff-oriented overview of the current MVP. It explains what exists, where the validation
+        boundary lives, how data moves through the system, and which parts are scaffolding versus production-relevant.
+      </p>
+    </header>
+
+    <section>
+      <h2>Current Scope</h2>
+      <div class="grid">
+        <article class="card">
+          <strong>Implemented now</strong>
+          <p>Validated ingestion from raw JSONL into parquet, UTC timestamp normalization, invalid-row logging, phrase extraction from comment parquet, reply graph reconstruction from comment parquet, cultural signal analysis from processed artifacts, and CLI entrypoints for all current stages.</p>
+        </article>
+        <article class="card">
+          <strong>Partially scaffolded</strong>
+          <p>The core pipeline stages exist now. The remaining work is mostly about deepening the analysis layer and tightening cross-stage contracts rather than adding missing major components.</p>
+        </article>
+        <article class="card">
+          <strong>Design goal</strong>
+          <p>Keep the system local, readable, and CLI-driven. There is no database, job queue, or dashboard in the current architecture.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Developer Workflow</h2>
+      <p>
+        This repository uses a <code>src/</code> layout. In practice that means developers should install the package
+        in editable mode before relying on module execution such as <code>python -m csg.cli.ingest</code>.
+      </p>
+      <pre><code>python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e .[dev]</code></pre>
+      <p>
+        After that, both of these are valid:
+      </p>
+      <pre><code>python -m csg.cli.ingest
+python -m csg.cli.extract_phrases
+python -m csg.cli.build_graph
+python -m csg.cli.analyze
+csg-ingest --comments data/raw/comments.jsonl --threads data/raw/threads.jsonl</code></pre>
+      <div class="note">
+        Running <code>python -m csg.cli.ingest</code> without an editable install or equivalent <code>PYTHONPATH</code>
+        setup will usually fail in a standard <code>src/</code> layout.
+      </div>
+    </section>
+
+    <section>
+      <h2>Repository Structure</h2>
+      <pre><code>cultural-signal-graph/
+  data/
+    raw/                  raw JSONL source files
+    processed/            parquet outputs for ingest, extraction, and graph stages
+  artifacts/
+    errors.jsonl          invalid ingest rows
+    *.csv                 analysis outputs
+  src/csg/
+    config.py             directory defaults
+    models.py             Pydantic record models
+    io/load_jsonl.py      streaming JSONL reader + validation logging
+    cli/ingest.py         parquet-writing ingest entrypoint
+    extract/              phrase extraction helpers
+    graph/                reply graph and graph helpers
+    analysis/             cultural signal analysis helpers
+  tests/
+    test_ingestion.py     ingest-focused test coverage
+    test_phrase_extraction.py
+                         phrase extraction coverage
+    test_reply_graph.py   reply graph coverage
+    test_analysis.py      analysis coverage</code></pre>
+    </section>
+
+    <section>
+      <h2>Architecture</h2>
+      <div class="flow">
+        <div class="step">Raw JSONL</div>
+        <div class="arrow">→</div>
+        <div class="step">Stream reader</div>
+        <div class="arrow">→</div>
+        <div class="step">Pydantic validation</div>
+        <div class="arrow">→</div>
+        <div class="step">UTC normalization</div>
+        <div class="arrow">→</div>
+        <div class="step">Parquet outputs</div>
+        <div class="arrow">→</div>
+        <div class="step">spaCy phrase extraction</div>
+        <div class="arrow">→</div>
+        <div class="step">Reply graph reconstruction</div>
+        <div class="arrow">→</div>
+        <div class="step">Cultural signal analysis</div>
+      </div>
+
+      <h3>Key design choices</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Decision</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Validation boundary</td>
+            <td><code>src/csg/io/load_jsonl.py</code> performs parse and model validation while streaming.</td>
+            <td>Keeps bad data handling in one place and prevents CLI logic from mixing orchestration with row-level correctness.</td>
+          </tr>
+          <tr>
+            <td>Schema enforcement</td>
+            <td><code>src/csg/models.py</code> defines <code>CommentRecord</code> and <code>ThreadRecord</code>.</td>
+            <td>Pydantic gives explicit required fields, type coercion, and a clean path for future schema evolution.</td>
+          </tr>
+          <tr>
+            <td>Output format</td>
+            <td>Validated records and extracted phrase artifacts are written as parquet using Polars.</td>
+            <td>Parquet is a better intermediate format for downstream analytics than JSONL and keeps file sizes manageable.</td>
+          </tr>
+          <tr>
+            <td>Phrase extraction</td>
+            <td><code>src/csg/extract/phrases.py</code> reads comment parquet through spaCy noun chunk extraction and emits phrase plus edge tables.</td>
+            <td>This keeps phrase logic isolated and gives later graph stages stable artifacts to consume.</td>
+          </tr>
+          <tr>
+            <td>Reply graph reconstruction</td>
+            <td><code>src/csg/graph/build_reply_graph.py</code> resolves Reddit <code>parent_id</code> references into directed comment edges and thread metrics.</td>
+            <td>This reconstructs thread structure from comment parquet without introducing a database or graph store.</td>
+          </tr>
+          <tr>
+            <td>Signal analysis</td>
+            <td><code>src/csg/cli/analyze.py</code> combines phrase, edge, reply, and comment artifacts into salience and trend outputs.</td>
+            <td>This keeps the analysis stage artifact-driven and independent from raw-source parsing.</td>
+          </tr>
+          <tr>
+            <td>Error handling</td>
+            <td>Malformed JSON and validation failures are skipped and appended to <code>artifacts/errors.jsonl</code>.</td>
+            <td>Ingestion remains resilient on mixed-quality datasets while preserving debugging visibility.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Implementation Details</h2>
+
+      <h3>1. Models</h3>
+      <p>
+        <code>CommentRecord</code> and <code>ThreadRecord</code> define the expected ingest schema. Both normalize
+        <code>created_at</code> to timezone-aware UTC <code>datetime</code> values using a shared helper.
+      </p>
+      <div class="note">
+        The models are intentionally strict on required fields. A missing required field is treated as an invalid row,
+        not silently defaulted.
+      </div>
+
+      <h3>2. Streaming JSONL loader</h3>
+      <p>
+        <code>stream_jsonl()</code> reads one line at a time. Each non-empty line is parsed as JSON and optionally
+        validated against a supplied Pydantic model. This is the main ingestion primitive.
+      </p>
+      <p>
+        Failure modes:
+      </p>
+      <ul>
+        <li>Malformed JSON: logged with <code>error_type = "malformed_json"</code>.</li>
+        <li>Schema or type failure: logged with <code>error_type = "validation_error"</code>.</li>
+        <li>Valid rows: yielded to the caller as model instances.</li>
+      </ul>
+
+      <h3>3. CLI orchestration</h3>
+      <p>
+        <code>python -m csg.cli.ingest</code> is the top-level ingest command. It does not do row manipulation itself.
+        It wires together source files, the streaming validator, and parquet serialization.
+      </p>
+
+      <pre><code>python -m csg.cli.ingest \
+  --comments data/raw/comments.jsonl \
+  --threads data/raw/threads.jsonl \
+  --comments-output data/processed/comments.parquet \
+  --threads-output data/processed/threads.parquet \
+  --errors artifacts/errors.jsonl</code></pre>
+
+      <h3>4. Parquet writer</h3>
+      <p>
+        The CLI currently materializes validated rows into memory before writing parquet. For the current MVP this is
+        simple and acceptable, but it is the main scalability limitation in the ingest path.
+      </p>
+      <div class="note">
+        If datasets grow substantially, the first change should be chunked parquet writing rather than broad architectural rewrites.
+      </div>
+
+      <h3>5. Phrase extraction stage</h3>
+      <p>
+        <code>python -m csg.cli.extract_phrases</code> reads <code>data/processed/comments.parquet</code>, loads a
+        spaCy pipeline, extracts noun chunks from comment text, normalizes phrases, preserves local abbreviations such as
+        <code>hrbt</code>, <code>vb</code>, <code>odu</code>, <code>norfolk</code>, and <code>ghent</code>, then writes
+        two parquet outputs.
+      </p>
+
+      <pre><code>python -m csg.cli.extract_phrases \
+  --input data/processed/comments.parquet \
+  --phrases-output data/processed/phrases.parquet \
+  --edges-output data/processed/comment_phrase_edges.parquet</code></pre>
+
+      <p>
+        The outputs are:
+      </p>
+      <ul>
+        <li><code>phrases.parquet</code>: one row per normalized phrase with ID, occurrence count, and first-seen timestamp.</li>
+        <li><code>comment_phrase_edges.parquet</code>: many-to-many mapping between comment IDs and phrase IDs.</li>
+      </ul>
+
+      <h3>6. Reply graph stage</h3>
+      <p>
+        <code>python -m csg.cli.build_graph</code> reads <code>data/processed/comments.parquet</code>, resolves
+        comment-to-comment edges from Reddit <code>parent_id</code> values, and computes both per-edge depth output and
+        thread-level summary metrics.
+      </p>
+
+      <pre><code>python -m csg.cli.build_graph \
+  --input data/processed/comments.parquet \
+  --edges-output data/processed/reply_edges.parquet \
+  --metrics-output data/processed/thread_metrics.parquet</code></pre>
+
+      <p>
+        Internal per-comment metrics are computed during reconstruction:
+      </p>
+      <ul>
+        <li><code>verified_depth</code>: recomputed depth from reconstructed parent-child links.</li>
+        <li><code>thread_root</code>: root comment for the connected reply branch.</li>
+        <li><code>descendant_count</code>: total descendants below the comment.</li>
+        <li><code>branch_size</code>: size of the comment subtree including the comment itself.</li>
+      </ul>
+
+      <p>
+        The persisted outputs are:
+      </p>
+      <ul>
+        <li><code>reply_edges.parquet</code>: <code>parent_comment_id</code>, <code>child_comment_id</code>, <code>depth</code>, <code>thread_id</code>.</li>
+        <li><code>thread_metrics.parquet</code>: <code>thread_id</code>, <code>comment_count</code>, <code>max_depth</code>, <code>avg_depth</code>.</li>
+      </ul>
+
+      <h3>7. Cultural signal analysis stage</h3>
+      <p>
+        <code>python -m csg.cli.analyze</code> reads the processed phrase, comment-phrase edge, reply-edge, and comment parquet artifacts and writes CSV outputs for downstream review.
+      </p>
+
+      <pre><code>python -m csg.cli.analyze \
+  --phrases data/processed/phrases.parquet \
+  --comment-phrase-edges data/processed/comment_phrase_edges.parquet \
+  --reply-edges data/processed/reply_edges.parquet \
+  --comments data/processed/comments.parquet \
+  --output-dir artifacts</code></pre>
+
+      <p>
+        This stage currently produces:
+      </p>
+      <ul>
+        <li><code>phrase_frequency.csv</code>: phrase-level occurrence counts derived from <code>phrases.parquet</code>.</li>
+        <li><code>phrase_cooccurrence.csv</code>: pair counts for phrases that appear in the same comment.</li>
+        <li><code>contested_phrases.csv</code>: phrases appearing in comments whose verified reply depth exceeds 5.</li>
+        <li><code>temporal_phrase_counts.csv</code>: weekly phrase usage counts.</li>
+        <li><code>top_signals.csv</code>: salience ranking based on frequency, comment score, and normalized reply depth.</li>
+      </ul>
+      <div class="note">
+        The salience calculation clamps negative aggregate comment scores to zero before applying
+        <code>log(1 + total_comment_score)</code>. This prevents math-domain failures on phrases associated with net-negative scored comments.
+      </div>
+    </section>
+
+    <section>
+      <h2>Data Contracts</h2>
+
+      <h3>CommentRecord</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>record_type</code></td><td><code>"comment"</code></td><td>Hard-validated literal.</td></tr>
+          <tr><td><code>community</code></td><td><code>str</code></td><td>Source community or subreddit.</td></tr>
+          <tr><td><code>thread_id</code></td><td><code>str</code></td><td>Parent thread identifier.</td></tr>
+          <tr><td><code>content_id</code></td><td><code>str</code></td><td>Comment identifier.</td></tr>
+          <tr><td><code>author_id</code></td><td><code>str</code></td><td>Source author identifier.</td></tr>
+          <tr><td><code>parent_id</code></td><td><code>str</code></td><td>Raw parent reference.</td></tr>
+          <tr><td><code>depth</code></td><td><code>int</code></td><td>Nesting depth in the thread.</td></tr>
+          <tr><td><code>reply_count</code></td><td><code>int</code></td><td>Immediate reply count.</td></tr>
+          <tr><td><code>created_at</code></td><td><code>datetime</code></td><td>Normalized to UTC.</td></tr>
+          <tr><td><code>text</code></td><td><code>str</code></td><td>Comment body text.</td></tr>
+          <tr><td><code>score</code></td><td><code>int</code></td><td>Platform score.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>ThreadRecord</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>record_type</code></td><td><code>"thread"</code></td><td>Hard-validated literal.</td></tr>
+          <tr><td><code>community</code></td><td><code>str</code></td><td>Source community or subreddit.</td></tr>
+          <tr><td><code>thread_id</code></td><td><code>str</code></td><td>Thread identifier.</td></tr>
+          <tr><td><code>title</code></td><td><code>str</code></td><td>Thread title.</td></tr>
+          <tr><td><code>created_at</code></td><td><code>datetime</code></td><td>Normalized to UTC.</td></tr>
+          <tr><td><code>score</code></td><td><code>int</code></td><td>Platform score.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Tests</h2>
+      <p>
+        The current tests cover ingestion, phrase extraction, reply graph reconstruction, and analysis:
+      </p>
+      <ul>
+        <li>Valid row parses and normalizes timestamp correctly.</li>
+        <li>Missing required field is rejected and logged.</li>
+        <li>Malformed JSON is rejected and logged.</li>
+        <li>CLI ingest helper writes parquet files for valid comment and thread inputs.</li>
+        <li>Phrase normalization preserves required regional abbreviations.</li>
+        <li>Phrase extraction builds phrase and edge tables from example comments.</li>
+        <li>Reply graph reconstruction resolves parent-child edges and thread metrics from example comments.</li>
+        <li>Analysis writes the expected artifact set and computes salience from artifact inputs.</li>
+      </ul>
+      <p>
+        These tests live in <code>tests/test_ingestion.py</code>, <code>tests/test_phrase_extraction.py</code>, <code>tests/test_reply_graph.py</code>, and <code>tests/test_analysis.py</code>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Known Gaps</h2>
+      <ul>
+        <li>The parquet writer currently buffers all validated rows in memory before writing.</li>
+        <li>The phrase extractor assumes a spaCy pipeline with noun chunk support for best results. The blank-model fallback is still limited.</li>
+        <li>Reply graph metrics are computed internally, but only thread-level metrics are currently persisted because the task only requested edge and thread summary outputs.</li>
+        <li>The current analysis outputs are file-based summaries only; there is no persisted normalized analysis table for reuse across later stages.</li>
+        <li>Invalid row logging is append-only and does not rotate or partition by source file.</li>
+        <li>There is no schema versioning yet for processed outputs.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Recommended Next Steps</h2>
+      <ol>
+        <li>Decide whether the analysis stage should also persist intermediate parquet tables in addition to the human-readable CSV outputs.</li>
+        <li>Introduce a small repository-level data access layer so non-ingest modules do not care whether storage is parquet or something else later.</li>
+        <li>Decide whether per-comment reply metrics should become a persisted artifact rather than remaining an internal computation.</li>
+        <li>Add explicit integration tests against the real sample files under <code>data/raw/</code> and the produced parquet outputs.</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

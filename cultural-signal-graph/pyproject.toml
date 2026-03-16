@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cultural-signal-graph"
+version = "0.1.0"
+description = "CLI-driven MVP for cultural signal graph extraction and analysis"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.0",
+  "pandas>=2.0",
+  "spacy>=3.7",
+  "networkx>=3.0",
+  "polars>=1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+csg-ingest = "csg.cli.ingest:main"
+csg-extract-phrases = "csg.cli.extract_phrases:main"
+csg-build-graph = "csg.cli.build_graph:main"
+csg-analyze = "csg.cli.analyze:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

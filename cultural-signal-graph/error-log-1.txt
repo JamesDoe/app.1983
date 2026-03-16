@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\admin\Downloads\1983-image-evaluator\cultural-signal-graph\src\csg\cli\analyze.py", line 162, in <module>
+    main()
+  File "C:\Users\admin\Downloads\1983-image-evaluator\cultural-signal-graph\src\csg\cli\analyze.py", line 150, in main
+    outputs = analyze(
+              ^^^^^^^^
+  File "C:\Users\admin\Downloads\1983-image-evaluator\cultural-signal-graph\src\csg\cli\analyze.py", line 34, in analyze
+    top_signals = compute_signal_salience(phrases, comment_phrase_edges, comments, comment_depths)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\Downloads\1983-image-evaluator\cultural-signal-graph\src\csg\cli\analyze.py", line 86, in compute_signal_salience
+    * math.log1p(float(row["total_comment_score"]))
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: math domain error

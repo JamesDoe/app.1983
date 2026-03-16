@@ -1,0 +1,5 @@
+[console_scripts]
+csg-analyze = csg.cli.analyze:main
+csg-build-graph = csg.cli.build_graph:main
+csg-extract-phrases = csg.cli.extract_phrases:main
+csg-ingest = csg.cli.ingest:main

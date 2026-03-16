@@ -1,0 +1,72 @@
+Metadata-Version: 2.4
+Name: cultural-signal-graph
+Version: 0.1.0
+Summary: CLI-driven MVP for cultural signal graph extraction and analysis
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: pydantic>=2.0
+Requires-Dist: pandas>=2.0
+Requires-Dist: spacy>=3.7
+Requires-Dist: networkx>=3.0
+Requires-Dist: polars>=1.0
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+
+# cultural-signal-graph
+
+CLI-driven MVP for ingesting discussion data, extracting phrases, building lightweight graphs, and running basic analyses.
+
+Developer handoff documentation is available in `dev-docs.html`.
+
+## Requirements
+
+- Python 3.11+
+
+## Setup
+
+```bash
+python -m venv .venv
+. .venv/bin/activate
+pip install -e .[dev]
+python -m spacy download en_core_web_sm
+```
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .[dev]
+python -m spacy download en_core_web_sm
+```
+
+## Project Layout
+
+```text
+src/csg/
+  cli/          # pipeline commands
+  io/           # input loaders
+  extract/      # normalization and phrase extraction
+  graph/        # graph construction
+  analysis/     # basic statistics
+```
+
+## Ingestion
+
+The ingestion pipeline validates raw JSONL, normalizes `created_at` to UTC datetimes, skips malformed rows, logs invalid inputs to `artifacts/errors.jsonl`, and writes parquet outputs.
+
+```bash
+python -m csg.cli.ingest
+```
+
+Installed entrypoint form:
+
+```bash
+csg-ingest --comments data/raw/comments.jsonl --threads data/raw/threads.jsonl
+```
+
+Outputs:
+
+- `data/processed/comments.parquet`
+- `data/processed/threads.parquet`
+- `artifacts/errors.jsonl`

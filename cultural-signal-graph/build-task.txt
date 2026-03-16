@@ -1,0 +1,29 @@
+With your access to files like:
+* data/processed/comments.parquet
+* data/processed/phrases.parquet
+* data/processed/reply_edges.parquet
+* artifacts/top_signals.csv
+* artifacts/contested_phrases.csv
+* artifacts/phrase_cooccurrence.csv
+* artifacts/temporal_phrase_counts.csv
+
+
+Generate a Markdown report summarizing cultural signals.
+
+File:
+
+artifacts/cultural_signals_report.md
+
+Include sections:
+
+Top Stable Signals
+Top Emerging Signals
+Most Contested Signals
+Top Co-Occurrence Clusters
+
+Show example phrases and counts.
+
+Keep the report concise and readable.
+
+If effeicacious, also develop a file to extrapolate a repeatable report methodology in:
+artifacts/cultural_signals_report_methodology.md
